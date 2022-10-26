@@ -9,10 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	"github.com/uwdavidwu/News_backend_go/util"
 )
 
 var (
-	db *sql.DB
+	db       *sql.DB
+	category = [...]string{"business", "entertainment", "general", "health", "science", "sports", "technology"}
 )
 
 type Object struct {
@@ -32,7 +34,7 @@ type Source struct {
 }
 
 type News struct {
-	Source      Source `json:"source"`
+	Id          int    `json:"id"`
 	Title       string `json:"title"`
 	Country     string `json:"country"`
 	Category    string `json:"category"`
@@ -42,34 +44,29 @@ type News struct {
 }
 
 const (
-	host     = "localhost"
-	port     = 5432
-	user     = "root"
-	password = "secret"
-	dbname   = "root"
-	apiKey   = "7af370dcc040451c8363ff120e0e2478"
+	apiKey = "7af370dcc040451c8363ff120e0e2478"
 )
 
 func main() {
-	connectDB()
+
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		panic(err)
+	}
+
+	connectDB(config.DB_SOURCE)
 	startServer()
 	go print()
 }
 
-func connectDB() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
+func connectDB(connStr string) {
 	var err error
-	db, err = sql.Open("postgres", psqlInfo)
+	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		panic(err)
 	}
-	// defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		panic(err)
 	}
 
@@ -81,15 +78,14 @@ func startServer() {
 	r.GET("/ping", pong)
 	r.GET("/news/home/:country/:category", getHomepageNews)
 	r.GET("/news/section/:country/:category", getCategoryNews)
-	r.GET("/news/subscribed/:id", getSubscribedNews)
-	r.POST("/news", createNews)
-
-	getNews("us", "business")
-	r.Run("localhost:8080")
+	// getNews("ca", "business")
+	go print("123")
+	r.Run()
+	go print("456")
 }
 
-func print() {
-	fmt.Println("I'm a new routine")
+func print(term string) {
+	fmt.Println("hello" + term)
 }
 
 func pong(c *gin.Context) {
@@ -99,10 +95,28 @@ func pong(c *gin.Context) {
 func getHomepageNews(c *gin.Context) {
 	country := c.Param("country")
 	category := c.Param("category")
-	c.JSON(http.StatusOK, gin.H{
-		"country":  country,
-		"category": category,
-	})
+	rows, err := db.Query("SELECT * FROM news WHERE country = $1 AND category = $2 ORDER BY publishedAt DESC LIMIT 12", country, category)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	var news []News
+	for rows.Next() {
+		var n News
+		err := rows.Scan(&n.Id, &n.Title, &n.Country, &n.Category, &n.Url, &n.UrlToImage, &n.PublishedAt)
+		if err != nil {
+			panic(err)
+		}
+		news = append(news, n)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	c.JSON(http.StatusOK, news)
+
 }
 
 func getCategoryNews(c *gin.Context) {
@@ -121,14 +135,6 @@ func getSubscribedNews(c *gin.Context) {
 	})
 }
 
-func createNews(c *gin.Context) {
-	var news News
-	c.BindJSON(&news)
-	c.JSON(http.StatusOK, gin.H{
-		"news": news,
-	})
-}
-
 func getNews(country string, category string) {
 	url := "https://newsapi.org/v2/top-headlines?country=" + country + "&category=" + category + "&apiKey=" + apiKey
 	resp, err := http.Get(url)
@@ -136,8 +142,6 @@ func getNews(country string, category string) {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	//decode twice
 
 	var obj Object
 	if err := json.NewDecoder(resp.Body).Decode(&obj); err != nil {
@@ -151,23 +155,6 @@ func getNews(country string, category string) {
 		if err != nil {
 			panic(err)
 		}
-		// fmt.Println(article)
 	}
 
 }
-
-// func BulkInsert(unsavedRows []*ExampleRowStruct) error {
-// 	valueStrings := make([]string, 0, len(unsavedRows))
-// 	valueArgs := make([]interface{}, 0, len(unsavedRows)*3)
-// 	i := 0
-// 	for _, post := range unsavedRows {
-// 		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d)", i*3+1, i*3+2, i*3+3))
-// 		valueArgs = append(valueArgs, post.Column1)
-// 		valueArgs = append(valueArgs, post.Column2)
-// 		valueArgs = append(valueArgs, post.Column3)
-// 		i++
-// 	}
-// 	stmt := fmt.Sprintf("INSERT INTO my_sample_table (column1, column2, column3) VALUES %s", strings.Join(valueStrings, ","))
-// 	_, err := db.Exec(stmt, valueArgs...)
-// 	return err
-// }
