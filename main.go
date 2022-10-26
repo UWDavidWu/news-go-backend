@@ -79,13 +79,7 @@ func startServer() {
 	r.GET("/news/home/:country/:category", getHomepageNews)
 	r.GET("/news/section/:country/:category", getCategoryNews)
 	// getNews("ca", "business")
-	go print("123")
 	r.Run()
-	go print("456")
-}
-
-func print(term string) {
-	fmt.Println("hello" + term)
 }
 
 func pong(c *gin.Context) {
