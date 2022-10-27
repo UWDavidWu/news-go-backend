@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: headlines-now-deployment
+  labels:
+    app: headlines-now
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: headlines-now
+  template:
+    metadata:
+      labels:
+        app: headlines-now
+    spec:
+      containers:
+      - name: headlines-now
+        image: 829785734720.dkr.ecr.us-east-2.amazonaws.com/headlinesnow:46a0d8affb549b100e65c9a68663e0e022f58c30
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080

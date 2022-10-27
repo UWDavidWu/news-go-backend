@@ -3,13 +3,15 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/uwdavidwu/News_backend_go/util"
+
+	"fmt"
 )
 
 var (
