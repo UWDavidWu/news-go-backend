@@ -51,10 +51,21 @@ type News struct {
 func main() {
 
 	// loadConfig()
+	API_KEY = os.Getenv("API_KEY")
+	DB_SOURCE = os.Getenv("DB_SOURCE")
 
-	loadHerokuConfig()
 	connectDB(DB_SOURCE)
-	startServer()
+
+	port := os.Getenv("PORT")
+	r := gin.Default()
+	r.GET("/news/home/:country/:category", getHomepageNews)
+	r.GET("/news/section/:country/:category", getCategoryNews)
+	go getNewsEvery30Minutes()
+	r.Run(":" + port)
+
+	// loadHerokuConfig()
+
+	// startServer()
 	// go getNewsEvery30Minutes()
 }
 
@@ -70,11 +81,9 @@ func main() {
 // 	DB_SOURCE = config.DB_SOURCE
 // }
 
-func loadHerokuConfig() {
-	API_KEY = os.Getenv("API_KEY")
-	DB_SOURCE = os.Getenv("DB_SOURCE")
+// func loadHerokuConfig() {
 
-}
+// }
 
 func connectDB(connStr string) {
 	var err error
@@ -90,15 +99,14 @@ func connectDB(connStr string) {
 	fmt.Println("Successfully connected!")
 }
 
-func startServer() {
-	port := os.Getenv("PORT")
-	r := gin.Default()
-	r.GET("/news/home/:country/:category", getHomepageNews)
-	r.GET("/news/section/:country/:category", getCategoryNews)
-	go getNewsEvery30Minutes()
-	r.Run(":" + port)
-
-}
+// func startServer() {
+// 	port := os.Getenv("PORT")
+// 	r := gin.Default()
+// 	r.GET("/news/home/:country/:category", getHomepageNews)
+// 	r.GET("/news/section/:country/:category", getCategoryNews)
+// 	go getNewsEvery30Minutes()
+// 	r.Run(":" + port)
+// }
 
 // go routine to get news every 30 minutes
 func getNewsEvery30Minutes() {
