@@ -52,10 +52,10 @@ type News struct {
 func main() {
 
 	// loadConfig()
-	// API_KEY = os.Getenv("API_KEY")
-	// DB_SOURCE = os.Getenv("DB_SOURCE")
+	API_KEY = os.Getenv("API_KEY")
+	DB_SOURCE = os.Getenv("DB_SOURCE")
 
-	// connectDB(DB_SOURCE)
+	connectDB(DB_SOURCE)
 
 	port := os.Getenv("PORT")
 
