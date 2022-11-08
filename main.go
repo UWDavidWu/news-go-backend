@@ -3,20 +3,24 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	"github.com/uwdavidwu/News_backend_go/util"
 
 	"fmt"
 )
 
 var (
-	db       *sql.DB
-	category = [...]string{"business", "entertainment", "general", "health", "science", "sports", "technology"}
+	db        *sql.DB
+	category  = [...]string{"business", "entertainment", "general", "health", "science", "sports", "technology"}
+	country   = [...]string{"ca", "us", "au"}
+	DB_SOURCE string
+	API_KEY   string
+	PORT      string
 )
 
 type Object struct {
@@ -45,20 +49,31 @@ type News struct {
 	PublishedAt string `json:"publishedAt"`
 }
 
-const (
-	apiKey = "7af370dcc040451c8363ff120e0e2478"
-)
-
 func main() {
 
-	config, err := util.LoadConfig(".")
-	if err != nil {
-		panic(err)
-	}
-
-	connectDB(config.DB_SOURCE)
+	// loadConfig()
+	loadHerokuConfig()
+	connectDB(DB_SOURCE)
 	startServer()
-	go print()
+	// go getNewsEvery30Minutes()
+}
+
+//locally
+
+// func loadConfig() {
+// 	config, err := util.LoadConfig(".")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	API_KEY = config.API_KEY
+// 	DB_SOURCE = config.DB_SOURCE
+// }
+
+func loadHerokuConfig() {
+	API_KEY = os.Getenv("API_KEY")
+	DB_SOURCE = os.Getenv("DB_SOURCE")
+	PORT = os.Getenv("PORT")
 }
 
 func connectDB(connStr string) {
@@ -77,15 +92,25 @@ func connectDB(connStr string) {
 
 func startServer() {
 	r := gin.Default()
-	r.GET("/ping", pong)
 	r.GET("/news/home/:country/:category", getHomepageNews)
 	r.GET("/news/section/:country/:category", getCategoryNews)
-	// getNews("ca", "business")
-	r.Run()
+	go getNewsEvery30Minutes()
+	r.Run(":" + PORT)
+
 }
 
-func pong(c *gin.Context) {
-	c.String(http.StatusOK, "pong")
+// go routine to get news every 30 minutes
+func getNewsEvery30Minutes() {
+	for {
+		for _, cate := range category {
+			for _, coun := range country {
+				getNews(coun, cate, API_KEY)
+				//log
+				fmt.Println("Get news from " + coun + " " + cate + time.Now().String())
+			}
+		}
+		time.Sleep(30 * time.Minute)
+	}
 }
 
 func getHomepageNews(c *gin.Context) {
@@ -124,15 +149,8 @@ func getCategoryNews(c *gin.Context) {
 	})
 }
 
-func getSubscribedNews(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{
-		"id": id,
-	})
-}
-
-func getNews(country string, category string) {
-	url := "https://newsapi.org/v2/top-headlines?country=" + country + "&category=" + category + "&apiKey=" + apiKey
+func getNews(country string, category string, API_KEY string) {
+	url := "https://newsapi.org/v2/top-headlines?country=" + country + "&category=" + category + "&apiKey=" + API_KEY
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)

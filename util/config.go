@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	DB_SOURCE string `mapstructure:"DB_SOURCE"`
+	API_KEY   string `mapstructure:"API_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
