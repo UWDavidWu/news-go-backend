@@ -20,7 +20,7 @@ var (
 	country   = [...]string{"ca", "us", "au"}
 	DB_SOURCE string
 	API_KEY   string
-	port      string
+	PORT      string
 )
 
 type Object struct {
@@ -54,7 +54,7 @@ func main() {
 	// loadConfig()
 	loadHerokuConfig()
 	connectDB(DB_SOURCE)
-	startServer()
+	startServer(PORT)
 	// go getNewsEvery30Minutes()
 }
 
@@ -73,7 +73,7 @@ func main() {
 func loadHerokuConfig() {
 	API_KEY = os.Getenv("API_KEY")
 	DB_SOURCE = os.Getenv("DB_SOURCE")
-	port = os.Getenv("PORT")
+	PORT = os.Getenv("PORT")
 }
 
 func connectDB(connStr string) {
@@ -90,7 +90,7 @@ func connectDB(connStr string) {
 	fmt.Println("Successfully connected!")
 }
 
-func startServer() {
+func startServer(port string) {
 	r := gin.Default()
 	r.GET("/news/home/:country/:category", getHomepageNews)
 	r.GET("/news/section/:country/:category", getCategoryNews)
