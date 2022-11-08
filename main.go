@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -51,13 +52,18 @@ type News struct {
 func main() {
 
 	// loadConfig()
-	API_KEY = os.Getenv("API_KEY")
-	DB_SOURCE = os.Getenv("DB_SOURCE")
+	// API_KEY = os.Getenv("API_KEY")
+	// DB_SOURCE = os.Getenv("DB_SOURCE")
 
-	connectDB(DB_SOURCE)
+	// connectDB(DB_SOURCE)
 
 	port := os.Getenv("PORT")
-	r := gin.Default()
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
+	r := gin.New()
 	r.GET("/news/home/:country/:category", getHomepageNews)
 	r.GET("/news/section/:country/:category", getCategoryNews)
 	go getNewsEvery30Minutes()
