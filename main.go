@@ -16,11 +16,9 @@ import (
 )
 
 var (
-	db        *sql.DB
-	category  = [...]string{"business", "entertainment", "general", "health", "science", "sports", "technology"}
-	country   = [...]string{"ca", "us", "au"}
-	DB_SOURCE string
-	API_KEY   string
+	db       *sql.DB
+	category = [...]string{"business", "entertainment", "general", "health", "science", "sports", "technology"}
+	country  = [...]string{"ca", "us", "au"}
 )
 
 type Object struct {
@@ -52,10 +50,8 @@ type News struct {
 func main() {
 
 	// loadConfig()
-	API_KEY = os.Getenv("API_KEY")
-	DB_SOURCE = os.Getenv("DB_SOURCE")
 
-	connectDB(DB_SOURCE)
+	connectDB()
 
 	port := os.Getenv("PORT")
 
@@ -91,9 +87,9 @@ func main() {
 
 // }
 
-func connectDB(connStr string) {
+func connectDB() {
 	var err error
-	db, err = sql.Open("postgres", connStr)
+	db, err = sql.Open("postgres", os.Getenv("DB_SOURCE"))
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +115,7 @@ func getNewsEvery30Minutes() {
 	for {
 		for _, cate := range category {
 			for _, coun := range country {
-				getNews(coun, cate, API_KEY)
+				getNews(coun, cate)
 				//log
 				fmt.Println("Get news from " + coun + " " + cate + time.Now().String())
 			}
@@ -164,8 +160,8 @@ func getCategoryNews(c *gin.Context) {
 	})
 }
 
-func getNews(country string, category string, API_KEY string) {
-	url := "https://newsapi.org/v2/top-headlines?country=" + country + "&category=" + category + "&apiKey=" + API_KEY
+func getNews(country string, category string) {
+	url := "https://newsapi.org/v2/top-headlines?country=" + country + "&category=" + category + "&apiKey=" + os.Getenv("API_KEY")
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
