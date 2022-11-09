@@ -51,8 +51,6 @@ func main() {
 
 	// loadConfig()
 
-	conn := os.Getenv("DB_SOURCE")
-	fmt.Println("conn is" + conn)
 	// var err error
 	// db, err = sql.Open("postgres", conn)
 	// if err != nil {
@@ -76,6 +74,9 @@ func main() {
 	r.GET("/news/section/:country/:category", getCategoryNews)
 	// go getNewsEvery30Minutes()
 	r.Run(":" + port)
+
+	conn := os.Getenv("DB_SOURCE")
+	fmt.Println("conn is" + conn)
 
 	// loadHerokuConfig()
 
