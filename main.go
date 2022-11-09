@@ -50,8 +50,8 @@ type News struct {
 func main() {
 
 	// loadConfig()
-
-	connectDB()
+	conn := os.Getenv("DB_SOURCE")
+	connectDB(conn)
 
 	port := os.Getenv("PORT")
 
@@ -87,8 +87,8 @@ func main() {
 
 // }
 
-func connectDB() {
-	conn := os.Getenv("DB_SOURCE")
+func connectDB(conn string) {
+
 	var err error
 	db, err = sql.Open("postgres", conn)
 	if err != nil {
