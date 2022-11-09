@@ -50,18 +50,20 @@ type News struct {
 func main() {
 
 	// loadConfig()
+
 	conn := os.Getenv("DB_SOURCE")
-	var err error
-	db, err = sql.Open("postgres", conn)
-	if err != nil {
-		panic(err)
-	}
+	fmt.Println("conn is" + conn)
+	// var err error
+	// db, err = sql.Open("postgres", conn)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	if err = db.Ping(); err != nil {
-		panic(err)
-	}
+	// if err = db.Ping(); err != nil {
+	// 	panic(err)
+	// }
 
-	fmt.Println("Successfully connected!")
+	// fmt.Println("Successfully connected!")
 
 	port := os.Getenv("PORT")
 
@@ -72,7 +74,7 @@ func main() {
 	r := gin.New()
 	r.GET("/news/home/:country/:category", getHomepageNews)
 	r.GET("/news/section/:country/:category", getCategoryNews)
-	go getNewsEvery30Minutes()
+	// go getNewsEvery30Minutes()
 	r.Run(":" + port)
 
 	// loadHerokuConfig()
