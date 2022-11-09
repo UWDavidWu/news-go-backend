@@ -88,8 +88,9 @@ func main() {
 // }
 
 func connectDB() {
+	conn := os.Getenv("DB_SOURCE")
 	var err error
-	db, err = sql.Open("postgres", os.Getenv("DB_SOURCE"))
+	db, err = sql.Open("postgres", conn)
 	if err != nil {
 		panic(err)
 	}
