@@ -51,7 +51,17 @@ func main() {
 
 	// loadConfig()
 	conn := os.Getenv("DB_SOURCE")
-	connectDB(conn)
+	var err error
+	db, err = sql.Open("postgres", conn)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = db.Ping(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Successfully connected!")
 
 	port := os.Getenv("PORT")
 
