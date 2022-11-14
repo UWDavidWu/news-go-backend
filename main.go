@@ -45,6 +45,7 @@ type News struct {
 	Url         string `json:"url"`
 	UrlToImage  string `json:"urlToImage"`
 	PublishedAt string `json:"publishedAt"`
+	Intensity   int    `json:"intensity"`
 }
 
 func init() {
@@ -64,37 +65,29 @@ func init() {
 
 func main() {
 
+	//loadConfig()
+
+	// connect to db
+	connectDB(os.Getenv("DATABASE_URL"))
+
 	port := os.Getenv("PORT")
+	// port := "8080"
 
 	if port == "" {
 		log.Fatal("$PORT must be set")
 	}
 
 	r := gin.New()
-	r.GET("/news/home/:country/:category", getHomepageNews)
-	r.GET("/news/section/:country/:category", getCategoryNews)
-	// go getNewsEvery30Minutes()
+	r.GET("/news/:country/:category", getHomepageNews)
+	go getNewsEvery30Minutes()
 	r.Run(":" + port)
-
-	// loadHerokuConfig()
-
-	// startServer()
-	// go getNewsEvery30Minutes()
 }
-
-//locally
 
 // func loadConfig() {
 // 	config, err := util.LoadConfig(".")
 // 	if err != nil {
 // 		panic(err)
 // 	}
-
-// 	API_KEY = config.API_KEY
-// 	DB_SOURCE = config.DB_SOURCE
-// }
-
-// func loadHerokuConfig() {
 
 // }
 
@@ -113,15 +106,6 @@ func connectDB(conn string) {
 	fmt.Println("Successfully connected!")
 }
 
-// func startServer() {
-// 	port := os.Getenv("PORT")
-// 	r := gin.Default()
-// 	r.GET("/news/home/:country/:category", getHomepageNews)
-// 	r.GET("/news/section/:country/:category", getCategoryNews)
-// 	go getNewsEvery30Minutes()
-// 	r.Run(":" + port)
-// }
-
 // go routine to get news every 30 minutes
 func getNewsEvery30Minutes() {
 	for {
@@ -139,37 +123,28 @@ func getNewsEvery30Minutes() {
 func getHomepageNews(c *gin.Context) {
 	country := c.Param("country")
 	category := c.Param("category")
-	rows, err := db.Query("SELECT * FROM news WHERE country = $1 AND category = $2 ORDER BY publishedAt DESC LIMIT 12", country, category)
+
+	// query for dv where country is country and category is category and publishedAt is the latest and limit 12
+	rows, err := db.Query("SELECT * FROM news WHERE country = $1 AND category = $2 ORDER BY publishedAt DESC LIMIT 60", country, category)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
+	//return result
 	var news []News
 	for rows.Next() {
 		var n News
-		err := rows.Scan(&n.Id, &n.Title, &n.Country, &n.Category, &n.Url, &n.UrlToImage, &n.PublishedAt)
+		err := rows.Scan(&n.Id, &n.Title, &n.Country, &n.Category, &n.Url, &n.UrlToImage, &n.PublishedAt, &n.Intensity)
 		if err != nil {
 			panic(err)
 		}
 		news = append(news, n)
 	}
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-
-	c.JSON(http.StatusOK, news)
-
-}
-
-func getCategoryNews(c *gin.Context) {
-	country := c.Param("country")
-	category := c.Param("category")
 	c.JSON(http.StatusOK, gin.H{
-		"country":  country,
-		"category": category,
+		"news": news,
 	})
+
 }
 
 func getNews(country string, category string) {
