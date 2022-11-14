@@ -48,21 +48,6 @@ type News struct {
 	Intensity   int    `json:"intensity"`
 }
 
-func init() {
-	var err error
-	conn := "postgresql://root:wu1999317@headlinesnow.cmschvayqzbv.us-east-2.rds.amazonaws.com:5432/news?sslmode=disable"
-	db, err = sql.Open("postgres", conn)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = db.Ping(); err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Successfully connected!")
-}
-
 func main() {
 
 	//loadConfig()
