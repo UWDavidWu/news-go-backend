@@ -64,7 +64,7 @@ func main() {
 
 	r := gin.New()
 	r.GET("/news/:country/:category", getHomepageNews)
-	go getNewsEvery30Minutes()
+	go getNewsEvery90Minutes()
 	r.Run(":" + port)
 }
 
@@ -92,7 +92,7 @@ func connectDB(conn string) {
 }
 
 // go routine to get news every 30 minutes
-func getNewsEvery30Minutes() {
+func getNewsEvery90Minutes() {
 	for {
 		for _, cate := range category {
 			for _, coun := range country {
@@ -101,7 +101,7 @@ func getNewsEvery30Minutes() {
 				fmt.Println("Get news from " + coun + " " + cate + time.Now().String())
 			}
 		}
-		time.Sleep(30 * time.Minute)
+		time.Sleep(90 * time.Minute)
 	}
 }
 
