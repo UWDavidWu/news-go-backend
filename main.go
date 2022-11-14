@@ -53,7 +53,7 @@ func main() {
 	//loadConfig()
 
 	// connect to db
-	connectDB(os.Getenv("DATABASE_URL"))
+	connectDB(os.Getenv("DB_SOURCE"))
 
 	port := os.Getenv("PORT")
 	// port := "8080"
